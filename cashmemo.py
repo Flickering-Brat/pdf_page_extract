@@ -6,7 +6,7 @@ from datetime import datetime
 st.set_page_config(page_title="IOCL Smart Printer", page_icon="⛽")
 
 st.title("⛽ IOCL Smart Triple-Invoice Packer")
-st.markdown("This version extracts your selected invoices and packs them **3-per-page** on A4 sheets for zero paper waste.")
+st.markdown("Extracts selected invoices and packs them **3-per-page** on A4 sheets for zero paper waste.")
 
 uploaded_file = st.file_uploader("Upload 'Cash Memo Bulk.PDF'", type="pdf")
 
@@ -35,7 +35,6 @@ if uploaded_file:
                 height = float(page.mediabox.height)
                 third_h = height / 3
 
-                # Define Top, Middle, Bottom coordinates
                 sections = [
                     (0, third_h * 2, width, height), 
                     (0, third_h, width, third_h * 2),   
@@ -43,7 +42,7 @@ if uploaded_file:
                 ]
 
                 for coords in sections:
-                    # Temporary crop to check date
+                    # Apply temporary crop to check date
                     page.cropbox.lower_left = (coords[0], coords[1])
                     page.cropbox.upper_right = (coords[2], coords[3])
                     text = page.extract_text()
@@ -54,15 +53,17 @@ if uploaded_file:
                             curr_date = datetime.strptime(date_part, "%d-%m-%Y")
 
                             if start_date <= curr_date <= end_date:
-                                # Create a standalone slip object
+                                # Create a standalone slip object in a fresh writer
                                 slip_writer = PyPDF2.PdfWriter()
                                 slip_writer.add_page(page)
                                 slip_page = slip_writer.pages[0]
                                 
-                                # Shift content to bottom
+                                # Reset the slip to sit at 0,0 for merging later
                                 slip_page.add_transformation(PyPDF2.Transformation().translate(tx=0, ty=-coords[1]))
                                 slip_page.mediabox.lower_left = (0, 0)
                                 slip_page.mediabox.upper_right = (width, third_h)
+                                slip_page.cropbox.lower_left = (0, 0)
+                                slip_page.cropbox.upper_right = (width, third_h)
                                 
                                 collected_slips.append((curr_date, slip_page))
                         except:
@@ -76,17 +77,14 @@ if uploaded_file:
                 
                 # --- PACKING LOGIC: 3 Slips per 1 A4 Page ---
                 for j in range(0, len(collected_slips), 3):
-                    # Create a new blank A4 page (595 x 842 points)
+                    # Standard A4 size is 595 x 842 points
                     new_a4 = final_writer.add_blank_page(width=595, height=842)
-                    
-                    # Get the batch of up to 3 slips
                     batch = collected_slips[j:j+3]
                     
                     for index, (dt, slip) in enumerate(batch):
-                        # Calculate position: 0=Top, 1=Middle, 2=Bottom
+                        # Position: Index 0=Top, 1=Middle, 2=Bottom
                         y_offset = (2 - index) * (842 / 3)
-                        
-                        # Merge the slip onto the A4 page at the correct height
+                        # Merge the slip onto the A4 page at the correct vertical position
                         new_a4.merge_page(slip)
                         new_a4.add_transformation(PyPDF2.Transformation().translate(tx=0, ty=y_offset))
 
@@ -94,7 +92,9 @@ if uploaded_file:
                 final_writer.write(output_pdf)
                 output_pdf.seek(0)
 
-                st.success(f"Success! Packed {len(collected_slips)} invoices onto {final_writer.get_num_pages()} A4 pages.")
+                # FIX: Use len(final_writer.pages) instead of get_num_pages()
+                st.success(f"Success! Packed {len(collected_slips)} invoices onto {len(final_writer.pages)} A4 pages.")
+                
                 st.download_button(
                     label="📥 Download Packed A4 PDF",
                     data=output_pdf,
