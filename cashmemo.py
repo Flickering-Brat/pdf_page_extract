@@ -91,9 +91,13 @@ if uploaded_file:
                         # This avoids the 'merge_transformed_page' error
                         op = PyPDF2.Transformation().translate(tx=0, ty=target_y - item["source_y"])
                         
-                        # Merge page and then apply the shift
-                        new_page.merge_page(source_page)
-                        new_page.add_transformation(op)
+                        # Create a temporary page to hold the transformed source
+                        temp_page = PyPDF2.PageObject.create_blank_page(width=595, height=842)
+                        temp_page.merge_page(source_page)
+                        temp_page.add_transformation(op)
+                        
+                        # Merge the transformed temp page into the new page
+                        new_page.merge_page(temp_page)
                     
                     # Lock the page view to A4 only
                     new_page.mediabox.lower_left = (0, 0)
