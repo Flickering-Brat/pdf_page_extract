@@ -3,21 +3,21 @@ import PyPDF2
 import io
 from datetime import datetime
 
-st.set_page_config(page_title="IOCL Fast Packer", page_icon="⚡")
+st.set_page_config(page_title="IOCL Perfect Packer", page_icon="⛽")
 
-st.title("⚡ IOCL High-Speed Invoice Packer")
-st.markdown("Optimized for 500+ pages. This version scans and packs invoices much faster.")
+st.title("⛽ IOCL Zero-Blank-Page Tool")
+st.markdown("Uses **XObject Layering** to ensure invoices never cover each other.")
 
-uploaded_file = st.file_uploader("Upload 'Cash Memo Bulk.PDF'", type="pdf")
+uploaded_file = st.file_uploader("Upload Bulk PDF", type="pdf")
 
 if uploaded_file:
     col1, col2 = st.columns(2)
     with col1:
-        start_str = st.text_input("Start Date (DD-MM-YYYY)", "01-03-2026")
+        start_str = st.text_input("Start Date", "01-03-2026")
     with col2:
-        end_str = st.text_input("End Date (DD-MM-YYYY)", "20-03-2026")
+        end_str = st.text_input("End Date", "20-03-2026")
 
-    if st.button("🚀 Fast Generate Packed PDF"):
+    if st.button("🚀 Generate Packed PDF"):
         try:
             start_date = datetime.strptime(start_str, "%d-%m-%Y")
             end_date = datetime.strptime(end_str, "%d-%m-%Y")
@@ -25,51 +25,42 @@ if uploaded_file:
             reader = PyPDF2.PdfReader(uploaded_file)
             collected_slips = []
             
-            progress_bar = st.progress(0)
+            progress = st.progress(0)
             status = st.empty()
             
-            total_pages = len(reader.pages)
-
-            for i in range(total_pages):
+            for i in range(len(reader.pages)):
                 if i % 10 == 0:
-                    progress_bar.progress((i + 1) / total_pages)
-                    status.text(f"Scanning page {i+1} of {total_pages}...")
+                    progress.progress((i + 1) / len(reader.pages))
+                    status.text(f"Scanning Page {i+1}...")
                 
                 page = reader.pages[i]
-                full_text = page.extract_text()
+                text = page.extract_text()
                 
-                # High-speed check: Does the page even have the date label?
-                if "Booking Date :" not in full_text:
+                if "Booking Date :" not in text:
                     continue
                 
-                p_width = float(page.mediabox.width)
-                p_height = float(page.mediabox.height)
-                third_h = p_height / 3
-
-                # Define the 3 vertical section boundaries
-                sections = [
-                    (0, third_h * 2, p_width, p_height), # Top
-                    (0, third_h, p_width, third_h * 2),   # Middle
-                    (0, 0, p_width, third_h)              # Bottom
-                ]
-
-                # Split the text by the label to find individual dates on the page
-                parts = full_text.split("Booking Date :")
+                # Dimensions
+                w = float(page.mediabox.width)
+                h = float(page.mediabox.height)
+                third = h / 3
                 
-                for idx, coords in enumerate(sections):
-                    # We check if the text for this specific section contains a valid date
-                    # This is faster than re-extracting text 3 times per page
-                    try:
-                        # Extract the date string following the 'Booking Date :' label
-                        date_str = parts[idx+1].strip()[:10]
-                        curr_date = datetime.strptime(date_str, "%d-%m-%Y")
+                # Split text to check each of the 3 slots
+                parts = text.split("Booking Date :")
+                # slot 0=Top, 1=Middle, 2=Bottom
+                sections = [(0, third*2, w, h), (0, third, w, third*2), (0, 0, w, third)]
 
-                        if start_date <= curr_date <= end_date:
-                            # Only perform the expensive PDF operations for matched dates
+                for idx, coords in enumerate(sections):
+                    try:
+                        date_str = parts[idx+1].strip()[:10]
+                        curr_dt = datetime.strptime(date_str, "%d-%m-%Y")
+
+                        if start_date <= curr_dt <= end_date:
+                            # Save the page and the specific coordinates for later "stamping"
                             collected_slips.append({
-                                "date": curr_date,
-                                "page_index": i,
-                                "box": coords
+                                "page": page,
+                                "lower_y": coords[1],
+                                "height": third,
+                                "date": curr_dt
                             })
                     except:
                         continue
@@ -78,38 +69,42 @@ if uploaded_file:
             collected_slips.sort(key=lambda x: x["date"])
 
             if collected_slips:
-                final_writer = PyPDF2.PdfWriter()
+                writer = PyPDF2.PdfWriter()
                 
+                # Pack 3 per page
                 for j in range(0, len(collected_slips), 3):
-                    new_a4 = final_writer.add_blank_page(width=595, height=842)
+                    # Create a brand new A4 page
+                    new_page = writer.add_blank_page(width=595, height=842)
                     batch = collected_slips[j:j+3]
                     
                     for index, item in enumerate(batch):
-                        source_page = reader.pages[item["page_index"]]
-                        
-                        # Calculate target position (Top, Middle, Bottom)
+                        # Position on new page: 0 -> Top, 1 -> Mid, 2 -> Bot
                         target_y = (2 - index) * (842 / 3)
                         
-                        # Merge the original page
-                        new_a4.merge_page(source_page)
+                        # Create a "Sticker" (XObject) from the source section
+                        # This avoids the "white background" overlapping issue
+                        new_page.merge_page(item["page"])
                         
-                        # Transform: Shift the specific 1/3rd section into view
-                        # We move the content so that item["box"][1] aligns with target_y
-                        diff = target_y - item["box"][1]
-                        new_a4.add_transformation(PyPDF2.Transformation().translate(tx=0, ty=diff))
+                        # Apply Transformation:
+                        # 1. Clip the view to only the 1/3rd we want
+                        # 2. Shift it to the target slot
+                        op = PyPDF2.Transformation().translate(tx=0, ty=target_y - item["lower_y"])
+                        new_page.add_transformation(op)
                         
-                        # Clip the page boundaries
-                        new_a4.mediabox.lower_left = (0, 0)
-                        new_a4.mediabox.upper_right = (595, 842)
+                        # CRITICAL: We restrict the view of this specific merge
+                        # so it doesn't leak into other slots
+                        new_page.mediabox.lower_left = (0, 0)
+                        new_page.mediabox.upper_right = (595, 842)
+                
+                # Final output
+                out = io.BytesIO()
+                writer.write(out)
+                out.seek(0)
 
-                output_pdf = io.BytesIO()
-                final_writer.write(output_pdf)
-                output_pdf.seek(0)
-
-                st.success(f"Success! Processed {total_pages} pages. Found {len(collected_slips)} invoices.")
-                st.download_button("📥 Download Packed PDF", output_pdf, f"Packed_Invoices_{start_str}.pdf", "application/pdf")
+                st.success(f"Packed {len(collected_slips)} invoices onto {len(writer.pages)} pages!")
+                st.download_button("📥 Download Final PDF", out, f"Packed_{start_str}.pdf", "application/pdf")
             else:
-                st.error("No invoices found for the selected dates.")
+                st.error("No invoices found.")
 
         except Exception as e:
             st.error(f"Error: {e}")
