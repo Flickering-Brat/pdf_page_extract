@@ -1,6 +1,7 @@
 import streamlit as st
 import PyPDF2
 import io
+import copy
 from datetime import datetime
 
 st.set_page_config(page_title="IOCL Smart Packer", page_icon="⛽")
@@ -87,16 +88,15 @@ if uploaded_file:
                         # Calculate target position (0=Top, 1=Middle, 2=Bottom)
                         target_y = (2 - index) * (842 / 3)
                         
-                        # Apply transformation to a temporary page object
-                        # This avoids the 'merge_transformed_page' error
-                        op = PyPDF2.Transformation().translate(tx=0, ty=target_y - item["source_y"])
+                        # Create a shallow copy to prevent mutating the original page's dictionary
+                        # This preserves all /Resources and avoids the blank page bug on merge
+                        temp_page = copy.copy(source_page)
                         
-                        # Create a temporary page to hold the transformed source
-                        temp_page = PyPDF2.PageObject.create_blank_page(width=595, height=842)
-                        temp_page.merge_page(source_page)
+                        # Apply translation
+                        op = PyPDF2.Transformation().translate(tx=0, ty=target_y - item["source_y"])
                         temp_page.add_transformation(op)
                         
-                        # Merge the transformed temp page into the new page
+                        # Merge the transformed temp page directly into the new page
                         new_page.merge_page(temp_page)
                     
                     # Lock the page view to A4 only
