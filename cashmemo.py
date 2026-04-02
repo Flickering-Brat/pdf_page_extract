@@ -3,12 +3,12 @@ import PyPDF2
 import io
 from datetime import datetime
 
-st.set_page_config(page_title="IOCL Light-PDF Tool", page_icon="⚡")
+st.set_page_config(page_title="IOCL Smart Printer", page_icon="⛽")
 
-st.title("⚡ IOCL Fast-Download Invoice Tool")
-st.markdown("This version uses **Object Isolation** to reduce file size for slow internet connections.")
+st.title("⛽ IOCL Smart Triple-Invoice Packer")
+st.markdown("This version extracts your selected invoices and packs them **3-per-page** on A4 sheets for zero paper waste.")
 
-uploaded_file = st.file_uploader("Upload Bulk PDF", type="pdf")
+uploaded_file = st.file_uploader("Upload 'Cash Memo Bulk.PDF'", type="pdf")
 
 if uploaded_file:
     col1, col2 = st.columns(2)
@@ -17,13 +17,13 @@ if uploaded_file:
     with col2:
         end_str = st.text_input("End Date (DD-MM-YYYY)", "20-03-2026")
 
-    if st.button("🚀 Generate Lightweight PDF"):
+    if st.button("🚀 Generate Packed A4 PDF"):
         try:
             start_date = datetime.strptime(start_str, "%d-%m-%Y")
             end_date = datetime.strptime(end_str, "%d-%m-%Y")
 
             reader = PyPDF2.PdfReader(uploaded_file)
-            collected_invoices = []
+            collected_slips = []
             
             progress_bar = st.progress(0)
             
@@ -31,7 +31,6 @@ if uploaded_file:
                 progress_bar.progress((i + 1) / len(reader.pages))
                 page = reader.pages[i]
                 
-                # Standard A4 dimensions
                 width = float(page.mediabox.width)
                 height = float(page.mediabox.height)
                 third_h = height / 3
@@ -44,7 +43,7 @@ if uploaded_file:
                 ]
 
                 for coords in sections:
-                    # Check text specifically in this 1/3rd area
+                    # Temporary crop to check date
                     page.cropbox.lower_left = (coords[0], coords[1])
                     page.cropbox.upper_right = (coords[2], coords[3])
                     text = page.extract_text()
@@ -55,50 +54,55 @@ if uploaded_file:
                             curr_date = datetime.strptime(date_part, "%d-%m-%Y")
 
                             if start_date <= curr_date <= end_date:
-                                # --- THE LIGHTWEIGHT TRICK ---
-                                # Create a fresh writer to 'clean' the page
-                                cleaner_writer = PyPDF2.PdfWriter()
-                                cleaner_writer.add_page(page)
-                                clean_slip = cleaner_writer.pages[0]
-
-                                # Shift content to bottom-left to remove white space
-                                clean_slip.add_transformation(PyPDF2.Transformation().translate(tx=0, ty=-coords[1]))
+                                # Create a standalone slip object
+                                slip_writer = PyPDF2.PdfWriter()
+                                slip_writer.add_page(page)
+                                slip_page = slip_writer.pages[0]
                                 
-                                # Physically set dimensions to 1/3rd A4
-                                clean_slip.mediabox.lower_left = (0, 0)
-                                clean_slip.mediabox.upper_right = (width, third_h)
+                                # Shift content to bottom
+                                slip_page.add_transformation(PyPDF2.Transformation().translate(tx=0, ty=-coords[1]))
+                                slip_page.mediabox.lower_left = (0, 0)
+                                slip_page.mediabox.upper_right = (width, third_h)
                                 
-                                # Compress content stream
-                                clean_slip.compress_content_streams()
-                                
-                                collected_invoices.append((curr_date, clean_slip))
+                                collected_slips.append((curr_date, slip_page))
                         except:
                             continue
 
-            # Sort results
-            collected_invoices.sort(key=lambda x: x[0])
+            # Sort chronological
+            collected_slips.sort(key=lambda x: x[0])
 
-            if collected_invoices:
+            if collected_slips:
                 final_writer = PyPDF2.PdfWriter()
-                for _, p in collected_invoices:
-                    final_writer.add_page(p)
                 
-                # Apply global compression
-                final_writer.add_metadata({"/Producer": "IOCL-Light-Tool"})
-                
+                # --- PACKING LOGIC: 3 Slips per 1 A4 Page ---
+                for j in range(0, len(collected_slips), 3):
+                    # Create a new blank A4 page (595 x 842 points)
+                    new_a4 = final_writer.add_blank_page(width=595, height=842)
+                    
+                    # Get the batch of up to 3 slips
+                    batch = collected_slips[j:j+3]
+                    
+                    for index, (dt, slip) in enumerate(batch):
+                        # Calculate position: 0=Top, 1=Middle, 2=Bottom
+                        y_offset = (2 - index) * (842 / 3)
+                        
+                        # Merge the slip onto the A4 page at the correct height
+                        new_a4.merge_page(slip)
+                        new_a4.add_transformation(PyPDF2.Transformation().translate(tx=0, ty=y_offset))
+
                 output_pdf = io.BytesIO()
                 final_writer.write(output_pdf)
                 output_pdf.seek(0)
 
-                st.success(f"Generated {len(collected_invoices)} invoices. Download ready!")
+                st.success(f"Success! Packed {len(collected_slips)} invoices onto {final_writer.get_num_pages()} A4 pages.")
                 st.download_button(
-                    label="📥 Download Fast-PDF",
+                    label="📥 Download Packed A4 PDF",
                     data=output_pdf,
-                    file_name=f"Light_Invoices_{start_str}.pdf",
+                    file_name=f"Packed_Invoices_{start_str}.pdf",
                     mime="application/pdf"
                 )
             else:
-                st.error("No invoices found for these dates.")
+                st.error("No invoices found.")
 
         except Exception as e:
             st.error(f"Error: {e}")
