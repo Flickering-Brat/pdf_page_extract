@@ -6,9 +6,9 @@ from datetime import datetime
 st.set_page_config(page_title="IOCL Smart Packer", page_icon="⛽")
 
 st.title("⛽ IOCL High-Speed Invoice Packer")
-st.markdown("Monitor real-time scanning and invoice extraction below.")
+st.markdown("Real-time extraction and 3-per-page A4 packing.")
 
-uploaded_file = st.file_uploader("Upload 'Cash Memo Bulk.PDF'", type="pdf")
+uploaded_file = st.file_uploader("Upload Bulk PDF", type="pdf")
 
 if uploaded_file:
     col1, col2 = st.columns(2)
@@ -26,16 +26,15 @@ if uploaded_file:
             total_pages = len(reader.pages)
             collected_slips = []
             
-            # --- PROGRESS ELEMENTS ---
+            # Progress Monitoring
             progress_bar = st.progress(0)
             progress_text = st.empty()
-            log_container = st.expander("Detailed Operation Log", expanded=True)
-            log_text = ""
+            log_container = st.expander("Operation Log", expanded=True)
+            log_entries = []
 
             for i in range(total_pages):
-                # Update progress counter (e.g., 1 of 465)
-                current_progress = (i + 1) / total_pages
-                progress_bar.progress(current_progress)
+                # Update visual counter (e.g., 1 of 465)
+                progress_bar.progress((i + 1) / total_pages)
                 progress_text.text(f"Scanning page {i+1} of {total_pages}...")
 
                 page = reader.pages[i]
@@ -48,11 +47,10 @@ if uploaded_file:
                 p_height = float(page.mediabox.height)
                 third_h = p_height / 3
                 
-                # Top, Middle, Bottom coordinates
                 sections = [
-                    (0, third_h * 2, p_width, p_height),
-                    (0, third_h, p_width, third_h * 2),
-                    (0, 0, p_width, third_h)
+                    (0, third_h * 2, p_width, p_height), # Top
+                    (0, third_h, p_width, third_h * 2),   # Middle
+                    (0, 0, p_width, third_h)              # Bottom
                 ]
 
                 parts = full_text.split("Booking Date :")
@@ -65,12 +63,11 @@ if uploaded_file:
                         if start_date <= curr_date <= end_date:
                             collected_slips.append({
                                 "date": curr_date,
-                                "original_page": page,
-                                "source_box": coords
+                                "page_index": i,
+                                "source_y": coords[1]
                             })
-                            # Show "Invoice found on page X"
-                            log_text += f"✅ Page {i+1}: Found invoice for {date_str}\n"
-                            log_container.text(log_text)
+                            log_entries.append(f"✅ Page {i+1}: Invoice found for {date_str}")
+                            log_container.text("\n".join(log_entries[-10:])) # Show last 10 finds
                     except:
                         continue
 
@@ -84,13 +81,24 @@ if uploaded_file:
                     batch = collected_slips[j:j+3]
                     
                     for index, item in enumerate(batch):
+                        # Create a fresh copy of the original page
+                        source_page = reader.pages[item["page_index"]]
+                        
+                        # Calculate target position (0=Top, 1=Middle, 2=Bottom)
                         target_y = (2 - index) * (842 / 3)
-                        translation = PyPDF2.Transformation().translate(
-                            tx=0, 
-                            ty=target_y - item["source_box"][1]
-                        )
-                        new_page.merge_transformed_page(item["original_page"], translation)
-                
+                        
+                        # Apply transformation to a temporary page object
+                        # This avoids the 'merge_transformed_page' error
+                        op = PyPDF2.Transformation().translate(tx=0, ty=target_y - item["source_y"])
+                        
+                        # Merge page and then apply the shift
+                        new_page.merge_page(source_page)
+                        new_page.add_transformation(op)
+                    
+                    # Lock the page view to A4 only
+                    new_page.mediabox.lower_left = (0, 0)
+                    new_page.mediabox.upper_right = (595, 842)
+
                 output_pdf = io.BytesIO()
                 final_writer.write(output_pdf)
                 output_pdf.seek(0)
