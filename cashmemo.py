@@ -100,9 +100,11 @@ if uploaded_file:
                 output_pdf = io.BytesIO()
                 out_doc.save(output_pdf)
                 output_pdf.seek(0)
+                
+                num_out_pages = len(out_doc)
                 out_doc.close()
 
-                st.success(f"Task Complete! Packed {len(collected_slips)} invoices onto {len(out_doc)} pages.")
+                st.success(f"Task Complete! Packed {len(collected_slips)} invoices onto {num_out_pages} pages.")
                 st.download_button("📥 Download Final PDF", output_pdf, f"Packed_Invoices.pdf", "application/pdf")
             else:
                 st.error("No invoices found for the selected dates.")
