@@ -3,10 +3,10 @@ import PyPDF2
 import io
 from datetime import datetime
 
-st.set_page_config(page_title="IOCL Smart Packer", page_icon="⛽")
+st.set_page_config(page_title="IOCL Fast Packer", page_icon="⚡")
 
-st.title("⛽ IOCL Zero-Blank-Page Invoice Tool")
-st.markdown("Fixes blank page issues by using physical boundary re-definition.")
+st.title("⚡ IOCL High-Speed Invoice Packer")
+st.markdown("Optimized for 500+ pages. This version scans and packs invoices much faster.")
 
 uploaded_file = st.file_uploader("Upload 'Cash Memo Bulk.PDF'", type="pdf")
 
@@ -17,7 +17,7 @@ if uploaded_file:
     with col2:
         end_str = st.text_input("End Date (DD-MM-YYYY)", "20-03-2026")
 
-    if st.button("🚀 Generate Packed A4 PDF"):
+    if st.button("🚀 Fast Generate Packed PDF"):
         try:
             start_date = datetime.strptime(start_str, "%d-%m-%Y")
             end_date = datetime.strptime(end_str, "%d-%m-%Y")
@@ -26,54 +26,53 @@ if uploaded_file:
             collected_slips = []
             
             progress_bar = st.progress(0)
+            status = st.empty()
             
-            for i in range(len(reader.pages)):
-                progress_bar.progress((i + 1) / len(reader.pages))
-                page = reader.pages[i]
+            total_pages = len(reader.pages)
+
+            for i in range(total_pages):
+                if i % 10 == 0:
+                    progress_bar.progress((i + 1) / total_pages)
+                    status.text(f"Scanning page {i+1} of {total_pages}...")
                 
-                # Get actual page size from PDF
-                # Standard A4 is roughly 595 x 842 points
-                p_width = page.mediabox.width
-                p_height = page.mediabox.height
+                page = reader.pages[i]
+                full_text = page.extract_text()
+                
+                # High-speed check: Does the page even have the date label?
+                if "Booking Date :" not in full_text:
+                    continue
+                
+                p_width = float(page.mediabox.width)
+                p_height = float(page.mediabox.height)
                 third_h = p_height / 3
 
-                # Coordinates for Top, Middle, Bottom sections
+                # Define the 3 vertical section boundaries
                 sections = [
                     (0, third_h * 2, p_width, p_height), # Top
                     (0, third_h, p_width, third_h * 2),   # Middle
                     (0, 0, p_width, third_h)              # Bottom
                 ]
 
-                for coords in sections:
-                    # Create a clean page object
-                    temp_writer = PyPDF2.PdfWriter()
-                    temp_writer.add_page(page)
-                    slip_page = temp_writer.pages[0]
+                # Split the text by the label to find individual dates on the page
+                parts = full_text.split("Booking Date :")
+                
+                for idx, coords in enumerate(sections):
+                    # We check if the text for this specific section contains a valid date
+                    # This is faster than re-extracting text 3 times per page
+                    try:
+                        # Extract the date string following the 'Booking Date :' label
+                        date_str = parts[idx+1].strip()[:10]
+                        curr_date = datetime.strptime(date_str, "%d-%m-%Y")
 
-                    # PHYSICAL EXTRACTION: Isolate the section for date checking
-                    slip_page.mediabox.lower_left = (coords[0], coords[1])
-                    slip_page.mediabox.upper_right = (coords[2], coords[3])
-                    slip_page.cropbox.lower_left = (coords[0], coords[1])
-                    slip_page.cropbox.upper_right = (coords[2], coords[3])
-                    
-                    text = slip_page.extract_text()
-                    
-                    if "Booking Date :" in text:
-                        try:
-                            # Parse date found in this 1/3rd section
-                            date_part = text.split("Booking Date :")[1].strip()[:10]
-                            curr_date = datetime.strptime(date_part, "%d-%m-%Y")
-
-                            if start_date <= curr_date <= end_date:
-                                # We store the 'isolated' slip page
-                                # Note: It currently has its origin at its original y-coordinate
-                                collected_slips.append({
-                                    "date": curr_date,
-                                    "page": page,
-                                    "box": coords
-                                })
-                        except:
-                            continue
+                        if start_date <= curr_date <= end_date:
+                            # Only perform the expensive PDF operations for matched dates
+                            collected_slips.append({
+                                "date": curr_date,
+                                "page_index": i,
+                                "box": coords
+                            })
+                    except:
+                        continue
 
             # Sort chronological
             collected_slips.sort(key=lambda x: x["date"])
@@ -81,26 +80,25 @@ if uploaded_file:
             if collected_slips:
                 final_writer = PyPDF2.PdfWriter()
                 
-                # Pack 3 invoices per A4 page
                 for j in range(0, len(collected_slips), 3):
                     new_a4 = final_writer.add_blank_page(width=595, height=842)
                     batch = collected_slips[j:j+3]
                     
                     for index, item in enumerate(batch):
-                        # Calculate target position on new page
-                        # index 0 -> Top, 1 -> Middle, 2 -> Bottom
-                        target_y_bottom = (2 - index) * (842 / 3)
+                        source_page = reader.pages[item["page_index"]]
                         
-                        # Use merge_page with a direct transformation to ensure visibility
-                        # This moves the content from its original location (item["box"][1]) 
-                        # to the target position on the blank A4
-                        new_a4.merge_page(item["page"])
+                        # Calculate target position (Top, Middle, Bottom)
+                        target_y = (2 - index) * (842 / 3)
                         
-                        # Create the transformation: Move it from original Y to 0, then to target Y
-                        op = PyPDF2.Transformation().translate(tx=0, ty=-float(item["box"][1])).translate(tx=0, ty=target_y_bottom)
-                        new_a4.add_transformation(op)
+                        # Merge the original page
+                        new_a4.merge_page(source_page)
                         
-                        # Apply a hard clip to prevent overlapping
+                        # Transform: Shift the specific 1/3rd section into view
+                        # We move the content so that item["box"][1] aligns with target_y
+                        diff = target_y - item["box"][1]
+                        new_a4.add_transformation(PyPDF2.Transformation().translate(tx=0, ty=diff))
+                        
+                        # Clip the page boundaries
                         new_a4.mediabox.lower_left = (0, 0)
                         new_a4.mediabox.upper_right = (595, 842)
 
@@ -108,13 +106,8 @@ if uploaded_file:
                 final_writer.write(output_pdf)
                 output_pdf.seek(0)
 
-                st.success(f"Successfully packed {len(collected_slips)} invoices onto {len(final_writer.pages)} pages.")
-                st.download_button(
-                    label="📥 Download Corrected Packed PDF",
-                    data=output_pdf,
-                    file_name=f"Packed_Invoices_{start_str}.pdf",
-                    mime="application/pdf"
-                )
+                st.success(f"Success! Processed {total_pages} pages. Found {len(collected_slips)} invoices.")
+                st.download_button("📥 Download Packed PDF", output_pdf, f"Packed_Invoices_{start_str}.pdf", "application/pdf")
             else:
                 st.error("No invoices found for the selected dates.")
 
