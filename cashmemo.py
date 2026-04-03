@@ -469,29 +469,134 @@ html, body, p, div, span, label, input,
    ║  EXPANDER / LOG                         ║
    ╚══════════════════════════════════════════╝ */
 [data-testid="stExpander"] {
-    background: rgba(0,12,28,0.75) !important;
-    border: 1px solid rgba(0,140,255,0.2) !important;
+    background: rgba(0, 12, 28, 0.8) !important;
+    border: 1px solid rgba(0, 140, 255, 0.25) !important;
     border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
+[data-testid="stExpander"]:hover {
+    border-color: rgba(0, 200, 255, 0.5) !important;
+    box-shadow: 0 4px 20px rgba(0, 140, 255, 0.15) !important;
+}
+
+/* Fix overlapping arrows */
 [data-testid="stExpander"] summary,
 [data-testid="stExpander"] details > summary {
-    color: rgba(90,165,235,0.7) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.8rem !important;
+    color: rgba(90, 165, 235, 0.9) !important;
     font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.6rem !important;
+    font-size: 0.65rem !important;
     letter-spacing: 0.28em !important;
     text-transform: uppercase !important;
-    padding: 0.7rem 1rem !important;
-    background: transparent !important;
+    padding: 0.8rem 1.2rem !important;
+    background: linear-gradient(90deg, rgba(0, 140, 255, 0.08) 0%, transparent 50%) !important;
+    border-bottom: 1px solid transparent !important;
+    transition: background 0.3s, color 0.3s !important;
 }
 
-[data-testid="stExpander"] p,
-[data-testid="stExpander"] pre,
-[data-testid="stExpander"] code {
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.7rem !important;
-    color: rgba(110,175,235,0.7) !important;
-    line-height: 1.7 !important;
+[data-testid="stExpander"] summary:hover {
+    background: linear-gradient(90deg, rgba(0, 168, 255, 0.15) 0%, transparent 60%) !important;
+    color: #00d4ff !important;
+}
+
+[data-testid="stExpander"] summary svg {
+    margin-right: 0.2rem !important;
+    flex-shrink: 0 !important;
+    color: #00d4ff !important;
+    min-width: 1.2rem !important;
+    transition: transform 0.3s ease !important;
+}
+
+[data-testid="stExpander"] summary p {
+    margin: 0 !important;
+    flex-grow: 1 !important;
+}
+
+/* Small, manually expandable window */
+[data-testid="stExpanderDetails"], 
+[data-testid="stExpander"] details > div:nth-of-type(2) {
+    max-height: 220px !important;
+    min-height: 100px !important;
+    overflow-y: auto !important;
+    resize: vertical !important;
+    background: rgba(0, 4, 12, 0.8) !important;
+    border-top: 1px solid rgba(0, 140, 255, 0.15) !important;
+    padding: 0.8rem 1rem !important;
+    box-shadow: inset 0px 5px 15px rgba(0,0,0,0.5) !important;
+}
+
+/* Live Log Interactive UI */
+.live-log-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.live-log-item {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(110, 175, 235, 0.7);
+    line-height: 1.4;
+    padding: 0.4rem 0.6rem;
+    border-left: 2px solid transparent;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: rgba(0,0,0,0.2);
+    border-radius: 0 4px 4px 0;
+}
+
+.live-log-item:hover {
+    background: rgba(0, 140, 255, 0.08);
+    border-left: 2px solid #00d4ff;
+    color: rgba(200, 235, 255, 0.95);
+    transform: translateX(3px);
+}
+
+.live-log-item.new-entry {
+    animation: flash-log 1.5s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+.log-icon {
+    color: #ffaa50;
+    font-size: 0.75rem;
+    text-shadow: 0 0 6px rgba(255,170,80,0.6);
+}
+
+.log-tag {
+    background: rgba(0, 140, 255, 0.15);
+    border: 1px solid rgba(0, 168, 255, 0.35);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    color: #00d4ff;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+}
+
+.log-date {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+}
+
+@keyframes flash-log {
+    0% {
+        background: rgba(0, 212, 255, 0.35);
+        border-left: 2px solid #00d4ff;
+        color: #ffffff;
+        transform: scale(1.02);
+    }
+    100% {
+        background: rgba(0,0,0,0.2);
+        border-left: 2px solid rgba(0, 140, 255, 0.5);
+        color: rgba(110, 175, 235, 0.7);
+        transform: scale(1);
+    }
 }
 
 /* ╔══════════════════════════════════════════╗
@@ -688,7 +793,8 @@ if uploaded_file:
 
             progress_bar  = st.progress(0)
             progress_text = st.empty()
-            log_container = st.expander("Operation Log", expanded=True)
+            log_container = st.expander("SYSTEM OPERATION LOG", expanded=True)
+            log_view      = log_container.empty()
             log_entries   = []
 
             st.markdown("</div>", unsafe_allow_html=True)
@@ -727,11 +833,29 @@ if uploaded_file:
                                     "section_idx": idx,
                                 })
                                 pos = ["TOP", "MID", "BTM"][idx]
-                                log_entries.append(
-                                    f"  ✦  PG {i+1:04d} [{pos}]"
-                                    f"  →  {date_str}  ·  INVOICE CAPTURED"
-                                )
-                                log_container.text("\n".join(log_entries[-10:]))
+                                log_entries.append({
+                                    "pg": f"{i+1:04d}",
+                                    "pos": pos,
+                                    "date": date_str
+                                })
+                                
+                                html_lines = ["<div class='live-log-container'>"]
+                                for list_idx, entry in enumerate(reversed(log_entries)):
+                                    is_new = "new-entry" if list_idx == 0 else ""
+                                    icon = "⚡" if list_idx == 0 else "✦"
+                                    
+                                    html_lines.append(
+                                        f"<div class='live-log-item {is_new}'>"
+                                        f"<span class='log-icon'>{icon}</span> "
+                                        f"<span>PG {entry['pg']}</span> "
+                                        f"<span class='log-tag'>{entry['pos']}</span> "
+                                        f"<span>→</span> "
+                                        f"<span class='log-date'>{entry['date']}</span> "
+                                        f"<span>· INVOICE CAPTURED</span>"
+                                        f"</div>"
+                                    )
+                                html_lines.append("</div>")
+                                log_view.markdown("".join(html_lines), unsafe_allow_html=True)
                         except Exception:
                             continue
 
