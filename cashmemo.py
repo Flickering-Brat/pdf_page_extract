@@ -10,386 +10,559 @@ st.set_page_config(
     layout="centered"
 )
 
-# ── Futuristic Premium CSS ──────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:ital,wght@0,200;0,300;0,400;0,600;1,300&display=swap');
 
-/* ── Reset & Base ── */
-html, body, [class*="css"] {
-    font-family: 'Exo 2', sans-serif;
+/* ═══════════════════════════════════════════
+   FORCE DARK THEME — overrides light mode
+═══════════════════════════════════════════ */
+html, body,
+[data-testid="stAppViewContainer"],
+[data-testid="stAppViewBlockContainer"],
+[data-testid="block-container"],
+.stApp,
+section.main,
+.main .block-container {
+    background-color: #03080f !important;
+    color: #c8dff5 !important;
+}
+
+[data-testid="stHeader"] {
+    background-color: #03080f !important;
+}
+
+[data-testid="stSidebar"] {
+    background-color: #030c16 !important;
+}
+
+[data-testid="stToolbar"],
+[data-testid="stDecoration"] {
+    background: transparent !important;
+}
+
+/* ═══════════════════════════════════════════
+   GLOBAL BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, [class*="css"], p, div, span, label {
+    font-family: 'Exo 2', sans-serif !important;
+    color: #c8dff5;
 }
 
 .stApp {
-    background: #020810;
+    background: #03080f;
     background-image:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 168, 255, 0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 30% at 85% 80%, rgba(255, 100, 0, 0.06) 0%, transparent 50%);
+        radial-gradient(ellipse 90% 55% at 50% -5%,  rgba(0, 140, 255, 0.13) 0%, transparent 65%),
+        radial-gradient(ellipse 45% 35% at 90% 85%,  rgba(255, 90, 0, 0.07)  0%, transparent 55%),
+        radial-gradient(ellipse 30% 25% at 5%  70%,  rgba(0, 200, 255, 0.04) 0%, transparent 50%);
     min-height: 100vh;
 }
 
-/* ── Scanline overlay ── */
-.stApp::before {
+/* Scanline texture */
+.stApp::after {
     content: '';
     position: fixed;
     inset: 0;
     background: repeating-linear-gradient(
         0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 168, 255, 0.015) 2px,
-        rgba(0, 168, 255, 0.015) 4px
+        transparent 0px,
+        transparent 3px,
+        rgba(0, 150, 255, 0.012) 3px,
+        rgba(0, 150, 255, 0.012) 4px
     );
     pointer-events: none;
-    z-index: 0;
+    z-index: 9999;
 }
 
-/* ── Main container ── */
 .block-container {
-    max-width: 760px !important;
-    padding: 2.5rem 2rem 4rem !important;
+    max-width: 780px !important;
+    padding: 2.8rem 2.2rem 5rem !important;
 }
 
-/* ── Header ── */
-.header-block {
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+.iocl-header {
     text-align: center;
-    margin-bottom: 2.8rem;
+    margin-bottom: 3rem;
     position: relative;
+    padding-bottom: 2rem;
 }
 
-.header-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.35em;
-    color: #00a8ff;
+.iocl-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0, 140, 255, 0.08);
+    border: 1px solid rgba(0, 140, 255, 0.25);
+    border-radius: 2px;
+    padding: 0.28rem 0.9rem;
+    margin-bottom: 1.2rem;
+}
+
+.iocl-badge-dot {
+    width: 5px; height: 5px;
+    background: #00a8ff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #00a8ff;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1;   transform: scale(1);   }
+    50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+.iocl-badge-text {
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.58rem !important;
+    letter-spacing: 0.32em;
+    color: #00a8ff !important;
     text-transform: uppercase;
-    margin-bottom: 0.5rem;
-    opacity: 0.75;
 }
 
-.header-title {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 2.6rem;
+.iocl-title {
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: clamp(2rem, 5vw, 2.9rem);
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     line-height: 1;
-    background: linear-gradient(135deg, #ffffff 30%, #00a8ff 70%, #ff6400 100%);
+    background: linear-gradient(140deg, #e8f4ff 15%, #5bc8ff 55%, #ff7a20 95%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    margin: 0 0 0.5rem 0;
+}
+
+.iocl-subtitle {
+    font-family: 'Exo 2', sans-serif !important;
+    font-size: 0.78rem;
+    font-weight: 300;
+    font-style: italic;
+    color: rgba(140, 185, 235, 0.5) !important;
+    letter-spacing: 0.12em;
     margin: 0;
 }
 
-.header-sub {
-    font-family: 'Exo 2', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 300;
-    color: rgba(160, 200, 255, 0.55);
-    letter-spacing: 0.08em;
-    margin-top: 0.6rem;
-}
-
-.header-line {
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #00a8ff55, #00a8ffaa, #00a8ff55, transparent);
-    margin-top: 1.6rem;
-    position: relative;
-}
-
-.header-line::before {
-    content: '⛽';
+.iocl-divider {
     position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background: #020810;
-    padding: 0 0.8rem;
-    font-size: 1rem;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(0,140,255,0.2) 15%,
+        rgba(0,168,255,0.7) 50%,
+        rgba(0,140,255,0.2) 85%,
+        transparent 100%
+    );
 }
 
-/* ── Card panels ── */
-.panel {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(0, 168, 255, 0.18);
-    border-radius: 6px;
-    padding: 1.6rem 1.8rem;
-    margin-bottom: 1.2rem;
-    position: relative;
-    backdrop-filter: blur(4px);
-}
-
-.panel::before {
+.iocl-divider::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px; height: 6px;
+    background: #00a8ff;
+    border-radius: 50%;
+    box-shadow: 0 0 12px 3px rgba(0,168,255,0.6);
+}
+
+/* ═══════════════════════════════════════════
+   STEP PANELS
+═══════════════════════════════════════════ */
+.step-panel {
+    position: relative;
+    background: linear-gradient(145deg, rgba(0,140,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(0, 140, 255, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem 1.8rem 1.6rem;
+    margin-bottom: 1.1rem;
+    overflow: hidden;
+}
+
+.step-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
     background: linear-gradient(90deg, transparent, #00a8ff, transparent);
-    border-radius: 6px 6px 0 0;
+    box-shadow: 0 0 8px rgba(0,168,255,0.5);
 }
 
-.panel-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.3em;
-    color: #00a8ff;
+.step-panel::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle at bottom right, rgba(0,168,255,0.06), transparent 70%);
+    border-radius: 0 0 8px 0;
+}
+
+.step-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 1.1rem;
+}
+
+.step-num {
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.58rem !important;
+    color: #00a8ff !important;
+    background: rgba(0,168,255,0.1);
+    border: 1px solid rgba(0,168,255,0.3);
+    border-radius: 2px;
+    padding: 0.15rem 0.45rem;
+    letter-spacing: 0.1em;
+}
+
+.step-title {
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.6rem !important;
+    letter-spacing: 0.28em;
+    color: rgba(120,175,230,0.6) !important;
     text-transform: uppercase;
-    margin-bottom: 1rem;
-    opacity: 0.7;
 }
 
-/* ── Upload area ── */
-[data-testid="stFileUploader"] {
-    background: rgba(0, 168, 255, 0.04) !important;
-    border: 1px dashed rgba(0, 168, 255, 0.35) !important;
+/* ═══════════════════════════════════════════
+   FILE UPLOADER — suppress built-in label
+═══════════════════════════════════════════ */
+[data-testid="stFileUploader"] > label {
+    display: none !important;
+}
+
+[data-testid="stFileUploader"] section {
+    background: rgba(0, 140, 255, 0.04) !important;
+    border: 1px dashed rgba(0, 140, 255, 0.4) !important;
     border-radius: 6px !important;
-    transition: border-color 0.3s, background 0.3s;
+    padding: 1.6rem !important;
+    transition: all 0.3s ease;
 }
 
-[data-testid="stFileUploader"]:hover {
-    border-color: rgba(0, 168, 255, 0.7) !important;
-    background: rgba(0, 168, 255, 0.08) !important;
+[data-testid="stFileUploader"] section:hover {
+    border-color: rgba(0, 168, 255, 0.75) !important;
+    background: rgba(0, 140, 255, 0.09) !important;
+    box-shadow: 0 0 20px rgba(0,168,255,0.08) inset !important;
 }
 
-[data-testid="stFileUploader"] label,
-[data-testid="stFileUploader"] p,
-[data-testid="stFileUploader"] span {
-    color: rgba(160, 200, 255, 0.7) !important;
+[data-testid="stFileUploader"] section * {
+    color: rgba(140, 190, 240, 0.7) !important;
     font-family: 'Exo 2', sans-serif !important;
 }
 
-/* ── Inputs ── */
-.stTextInput > div > div > input {
-    background: rgba(0, 168, 255, 0.06) !important;
-    border: 1px solid rgba(0, 168, 255, 0.3) !important;
+[data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] {
+    background: rgba(0, 140, 255, 0.1) !important;
+    border: 1px solid rgba(0, 168, 255, 0.35) !important;
     border-radius: 4px !important;
-    color: #c8e8ff !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.95rem !important;
-    letter-spacing: 0.05em;
-    padding: 0.55rem 0.9rem !important;
-    transition: border-color 0.25s, box-shadow 0.25s;
 }
 
-.stTextInput > div > div > input:focus {
-    border-color: #00a8ff !important;
-    box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.15), 0 0 18px rgba(0, 168, 255, 0.12) !important;
+/* ═══════════════════════════════════════════
+   TEXT INPUTS
+═══════════════════════════════════════════ */
+.stTextInput label {
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.6rem !important;
+    letter-spacing: 0.28em !important;
+    text-transform: uppercase !important;
+    color: rgba(120, 175, 230, 0.6) !important;
+    margin-bottom: 0.4rem !important;
+}
+
+.stTextInput input {
+    background: rgba(0, 140, 255, 0.07) !important;
+    border: 1px solid rgba(0, 140, 255, 0.28) !important;
+    border-radius: 5px !important;
+    color: #aee0ff !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 1rem !important;
+    letter-spacing: 0.08em !important;
+    padding: 0.6rem 1rem !important;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.stTextInput input:focus {
+    border-color: rgba(0, 168, 255, 0.8) !important;
+    background: rgba(0, 140, 255, 0.12) !important;
+    box-shadow: 0 0 0 3px rgba(0,168,255,0.1), 0 0 20px rgba(0,168,255,0.1) !important;
     outline: none !important;
 }
 
-.stTextInput label {
-    color: rgba(160, 210, 255, 0.65) !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.65rem !important;
-    letter-spacing: 0.25em !important;
-    text-transform: uppercase !important;
+.stTextInput input::placeholder {
+    color: rgba(100, 160, 210, 0.35) !important;
 }
 
-/* ── Button ── */
-.stButton > button {
-    background: linear-gradient(135deg, rgba(0,168,255,0.15) 0%, rgba(0,168,255,0.08) 100%) !important;
-    border: 1px solid rgba(0, 168, 255, 0.55) !important;
-    border-radius: 4px !important;
-    color: #00c8ff !important;
-    font-family: 'Rajdhani', sans-serif !important;
-    font-size: 1rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.18em !important;
-    text-transform: uppercase !important;
-    padding: 0.65rem 2.2rem !important;
+/* ═══════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════ */
+.stButton button {
     width: 100% !important;
+    background: linear-gradient(135deg,
+        rgba(0, 140, 255, 0.18) 0%,
+        rgba(0, 100, 200, 0.1) 100%) !important;
+    border: 1px solid rgba(0, 168, 255, 0.5) !important;
+    border-radius: 5px !important;
+    color: #5cd0ff !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.2em !important;
+    text-transform: uppercase !important;
+    padding: 0.7rem 1.5rem !important;
     cursor: pointer !important;
-    transition: all 0.25s !important;
+    transition: all 0.22s ease !important;
+}
+
+.stButton button:hover {
+    border-color: rgba(0, 200, 255, 0.85) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 0 0 1px rgba(0,200,255,0.2),
+        0 0 28px rgba(0,168,255,0.25),
+        0 4px 16px rgba(0,0,0,0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+.stButton button:active {
+    transform: translateY(0) !important;
+}
+
+[data-testid="stDownloadButton"] button {
+    background: linear-gradient(135deg,
+        rgba(255, 100, 0, 0.18) 0%,
+        rgba(200, 70, 0, 0.1) 100%) !important;
+    border: 1px solid rgba(255, 110, 0, 0.5) !important;
+    color: #ffaa55 !important;
+}
+
+[data-testid="stDownloadButton"] button:hover {
+    border-color: rgba(255, 140, 0, 0.9) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 0 0 1px rgba(255,120,0,0.2),
+        0 0 28px rgba(255,100,0,0.25),
+        0 4px 16px rgba(0,0,0,0.4) !important;
+}
+
+/* ═══════════════════════════════════════════
+   PROGRESS BAR
+═══════════════════════════════════════════ */
+.stProgress > div > div {
+    background: rgba(0, 140, 255, 0.12) !important;
+    border: 1px solid rgba(0, 140, 255, 0.22) !important;
+    border-radius: 3px !important;
+    height: 5px !important;
+}
+
+.stProgress > div > div > div > div {
+    background: linear-gradient(90deg, #003d7a, #0090e0, #00d4ff) !important;
+    box-shadow: 0 0 10px rgba(0, 200, 255, 0.55) !important;
+    border-radius: 3px !important;
+}
+
+/* ═══════════════════════════════════════════
+   EXPANDER / LOG
+═══════════════════════════════════════════ */
+[data-testid="stExpander"] {
+    background: rgba(0, 15, 35, 0.7) !important;
+    border: 1px solid rgba(0, 140, 255, 0.2) !important;
+    border-radius: 6px !important;
+}
+
+[data-testid="stExpander"] details > summary {
+    color: rgba(100, 175, 240, 0.65) !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.62rem !important;
+    letter-spacing: 0.25em !important;
+    text-transform: uppercase !important;
+    padding: 0.7rem 1rem !important;
+}
+
+/* ═══════════════════════════════════════════
+   ALERTS
+═══════════════════════════════════════════ */
+[data-testid="stAlert"] {
+    border-radius: 5px !important;
+    font-family: 'Exo 2', sans-serif !important;
+}
+
+/* ═══════════════════════════════════════════
+   STATUS TEXT
+═══════════════════════════════════════════ */
+.stText p, .element-container > div > p {
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.72rem !important;
+    color: rgba(120, 175, 230, 0.6) !important;
+    line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════
+   STATS CARDS
+═══════════════════════════════════════════ */
+.result-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.9rem;
+    margin: 1.4rem 0 1.2rem;
+}
+
+.stat-tile {
+    background: linear-gradient(145deg, rgba(0,140,255,0.08), rgba(0,80,160,0.04));
+    border: 1px solid rgba(0, 140, 255, 0.22);
+    border-radius: 6px;
+    padding: 1rem 0.8rem;
+    text-align: center;
     position: relative;
     overflow: hidden;
 }
 
-.stButton > button:hover {
-    background: linear-gradient(135deg, rgba(0,168,255,0.28) 0%, rgba(0,168,255,0.15) 100%) !important;
-    border-color: #00a8ff !important;
-    box-shadow: 0 0 24px rgba(0, 168, 255, 0.3), 0 0 8px rgba(0, 168, 255, 0.2) !important;
-    color: #ffffff !important;
-    transform: translateY(-1px) !important;
+.stat-tile::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20%; right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,168,255,0.6), transparent);
 }
 
-.stButton > button:active {
-    transform: translateY(0px) !important;
-}
-
-/* Download button accent ── orange */
-[data-testid="stDownloadButton"] > button {
-    background: linear-gradient(135deg, rgba(255,100,0,0.15) 0%, rgba(255,100,0,0.08) 100%) !important;
-    border: 1px solid rgba(255, 100, 0, 0.55) !important;
-    color: #ff8c42 !important;
-}
-
-[data-testid="stDownloadButton"] > button:hover {
-    background: linear-gradient(135deg, rgba(255,100,0,0.28) 0%, rgba(255,100,0,0.15) 100%) !important;
-    border-color: #ff6400 !important;
-    box-shadow: 0 0 24px rgba(255, 100, 0, 0.3), 0 0 8px rgba(255, 100, 0, 0.2) !important;
-    color: #ffffff !important;
-}
-
-/* ── Progress bar ── */
-.stProgress > div > div > div > div {
-    background: linear-gradient(90deg, #004880, #00a8ff, #00d4ff) !important;
-    box-shadow: 0 0 12px rgba(0, 168, 255, 0.5);
-}
-
-.stProgress > div > div {
-    background: rgba(0, 168, 255, 0.1) !important;
-    border: 1px solid rgba(0, 168, 255, 0.2) !important;
-    border-radius: 2px !important;
-    height: 6px !important;
-}
-
-/* ── Expander (log) ── */
-[data-testid="stExpander"] {
-    background: rgba(0, 20, 40, 0.6) !important;
-    border: 1px solid rgba(0, 168, 255, 0.2) !important;
-    border-radius: 6px !important;
-}
-
-[data-testid="stExpander"] summary {
-    color: rgba(100, 180, 255, 0.7) !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.7rem !important;
-    letter-spacing: 0.2em !important;
-    text-transform: uppercase !important;
-}
-
-/* ── Alerts ── */
-.stSuccess {
-    background: rgba(0, 255, 100, 0.07) !important;
-    border: 1px solid rgba(0, 255, 100, 0.3) !important;
-    border-radius: 4px !important;
-    color: #80ffb0 !important;
-    font-family: 'Exo 2', sans-serif !important;
-}
-
-.stError {
-    background: rgba(255, 50, 50, 0.07) !important;
-    border: 1px solid rgba(255, 50, 50, 0.3) !important;
-    border-radius: 4px !important;
-    color: #ffaaaa !important;
-    font-family: 'Exo 2', sans-serif !important;
-}
-
-/* ── Status text ── */
-.stText, .element-container p {
-    color: rgba(160, 200, 255, 0.65) !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.75rem !important;
-}
-
-/* ── Column gaps ── */
-[data-testid="stHorizontalBlock"] {
-    gap: 1rem;
-}
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #020810; }
-::-webkit-scrollbar-thumb { background: rgba(0,168,255,0.4); border-radius: 2px; }
-
-/* ── Stats row ── */
-.stats-row {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.stat-card {
-    flex: 1;
-    background: rgba(0, 168, 255, 0.06);
-    border: 1px solid rgba(0, 168, 255, 0.2);
-    border-radius: 5px;
-    padding: 0.8rem 1rem;
-    text-align: center;
-}
-
-.stat-value {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 1.8rem;
+.stat-tile-value {
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 2.1rem;
     font-weight: 700;
-    color: #00c8ff;
+    color: #3dcfff !important;
     line-height: 1;
+    text-shadow: 0 0 20px rgba(0,200,255,0.4);
 }
 
-.stat-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.2em;
-    color: rgba(100, 160, 255, 0.55);
+.stat-tile-label {
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.52rem !important;
+    letter-spacing: 0.22em;
+    color: rgba(100, 160, 220, 0.5) !important;
     text-transform: uppercase;
     margin-top: 0.3rem;
 }
+
+/* ═══════════════════════════════════════════
+   MISC
+═══════════════════════════════════════════ */
+[data-testid="stHorizontalBlock"] { gap: 1rem; }
+
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: #03080f; }
+::-webkit-scrollbar-thumb { background: rgba(0,168,255,0.35); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,168,255,0.6); }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ── Header ──────────────────────────────────────────────────────────────────
+# ── HEADER ───────────────────────────────────────────────────────────────────
 st.markdown("""
-<div class="header-block">
-    <div class="header-eyebrow">Indian Oil Corporation Ltd — Document Processing</div>
-    <div class="header-title">SMART INVOICE PACKER</div>
-    <div class="header-sub">High-Speed Bulk PDF Extraction &amp; A4 Packing Engine</div>
-    <div class="header-line"></div>
+<div class="iocl-header">
+    <div style="display:flex;justify-content:center;margin-bottom:1.1rem;">
+        <div class="iocl-badge">
+            <div class="iocl-badge-dot"></div>
+            <span class="iocl-badge-text">Indian Oil Corporation Ltd &nbsp;·&nbsp; Document Processing Unit</span>
+        </div>
+    </div>
+    <div class="iocl-title">SMART INVOICE PACKER</div>
+    <p class="iocl-subtitle">High-Speed Bulk PDF Extraction &amp; A4 Packing Engine</p>
+    <div class="iocl-divider"></div>
 </div>
 """, unsafe_allow_html=True)
 
 
-# ── Upload Panel ─────────────────────────────────────────────────────────────
-st.markdown('<div class="panel"><div class="panel-label">// 01 — Document Source</div>', unsafe_allow_html=True)
-uploaded_file = st.file_uploader("Upload Bulk PDF", type="pdf", label_visibility="collapsed")
-st.markdown('</div>', unsafe_allow_html=True)
+# ── PANEL 01 — UPLOAD ────────────────────────────────────────────────────────
+st.markdown("""
+<div class="step-panel">
+    <div class="step-tag">
+        <span class="step-num">01</span>
+        <span class="step-title">Document Source</span>
+    </div>
+""", unsafe_allow_html=True)
+
+uploaded_file = st.file_uploader(
+    "Drop your bulk PDF here",
+    type="pdf",
+    label_visibility="collapsed"
+)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ── Date Range Panel ─────────────────────────────────────────────────────────
+# ── PANELS 02 & 03 ───────────────────────────────────────────────────────────
 if uploaded_file:
-    st.markdown('<div class="panel"><div class="panel-label">// 02 — Date Filter Range</div>', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="step-panel">
+        <div class="step-tag">
+            <span class="step-num">02</span>
+            <span class="step-title">Date Filter Range</span>
+        </div>
+    """, unsafe_allow_html=True)
+
     col1, col2 = st.columns(2)
     with col1:
-        start_str = st.text_input("FROM DATE (DD-MM-YYYY)", "01-03-2026")
+        start_str = st.text_input("From Date (DD-MM-YYYY)", "01-03-2026")
     with col2:
-        end_str = st.text_input("TO DATE (DD-MM-YYYY)", "20-03-2026")
-    st.markdown('</div>', unsafe_allow_html=True)
+        end_str = st.text_input("To Date (DD-MM-YYYY)", "20-03-2026")
 
-    # ── Execute Panel ────────────────────────────────────────────────────────
-    st.markdown('<div class="panel"><div class="panel-label">// 03 — Execute</div>', unsafe_allow_html=True)
-    run = st.button("🚀  INITIATE EXTRACTION SEQUENCE")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
+    st.markdown("""
+    <div class="step-panel">
+        <div class="step-tag">
+            <span class="step-num">03</span>
+            <span class="step-title">Execute</span>
+        </div>
+    """, unsafe_allow_html=True)
+
+    run = st.button("⚡  INITIATE EXTRACTION SEQUENCE")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # ── PROCESSING ───────────────────────────────────────────────────────────
     if run:
         try:
             start_date = datetime.strptime(start_str, "%d-%m-%Y")
-            end_date = datetime.strptime(end_str, "%d-%m-%Y")
+            end_date   = datetime.strptime(end_str,   "%d-%m-%Y")
 
             file_bytes = uploaded_file.getvalue()
             doc = fitz.open(stream=file_bytes, filetype="pdf")
             total_pages = len(doc)
             collected_slips = []
 
-            st.markdown('<div class="panel"><div class="panel-label">// System — Live Processing Feed</div>', unsafe_allow_html=True)
-            progress_bar = st.progress(0)
+            st.markdown("""
+            <div class="step-panel">
+                <div class="step-tag">
+                    <span class="step-num">SYS</span>
+                    <span class="step-title">Live Processing Feed</span>
+                </div>
+            """, unsafe_allow_html=True)
+
+            progress_bar  = st.progress(0)
             progress_text = st.empty()
             log_container = st.expander("Operation Log", expanded=True)
-            log_entries = []
-            st.markdown('</div>', unsafe_allow_html=True)
+            log_entries   = []
+
+            st.markdown("</div>", unsafe_allow_html=True)
 
             for i in range(total_pages):
                 progress_bar.progress((i + 1) / total_pages)
-                progress_text.text(f"[ SCAN ] Page {i+1:04d} / {total_pages:04d}  ·  Slips captured: {len(collected_slips)}")
+                progress_text.text(
+                    f"[ SCAN ]  Page {i+1:04d} / {total_pages:04d}  ·  Captured: {len(collected_slips)}"
+                )
 
-                page = doc[i]
-                p_width = page.rect.width
-                p_height = page.rect.height
-                third_h = p_height / 3
+                page    = doc[i]
+                p_w     = page.rect.width
+                p_h     = page.rect.height
+                third_h = p_h / 3
 
                 sections = [
-                    fitz.Rect(0, 0, p_width, third_h),
-                    fitz.Rect(0, third_h, p_width, third_h * 2),
-                    fitz.Rect(0, third_h * 2, p_width, p_height)
+                    fitz.Rect(0, 0,         p_w, third_h),
+                    fitz.Rect(0, third_h,   p_w, third_h * 2),
+                    fitz.Rect(0, third_h*2, p_w, p_h)
                 ]
 
                 for idx, clip_rect in enumerate(sections):
@@ -401,12 +574,14 @@ if uploaded_file:
                             curr_date = datetime.strptime(date_str, "%d-%m-%Y")
                             if start_date <= curr_date <= end_date:
                                 collected_slips.append({
-                                    "date": curr_date,
-                                    "page_index": i,
+                                    "date":        curr_date,
+                                    "page_index":  i,
                                     "section_idx": idx
                                 })
-                                position_name = ["TOP", "MID", "BTM"][idx]
-                                log_entries.append(f"  ✦  PG {i+1:04d} [{position_name}]  →  {date_str}  ·  INVOICE CAPTURED")
+                                pos = ["TOP", "MID", "BTM"][idx]
+                                log_entries.append(
+                                    f"  ✦  PG {i+1:04d} [{pos}]  →  {date_str}  ·  CAPTURED"
+                                )
                                 log_container.text("\n".join(log_entries[-10:]))
                         except Exception:
                             continue
@@ -418,44 +593,45 @@ if uploaded_file:
 
                 for j in range(0, len(collected_slips), 3):
                     new_page = out_doc.new_page(width=595, height=842)
-                    batch = collected_slips[j:j+3]
+                    batch    = collected_slips[j:j+3]
 
                     for index, item in enumerate(batch):
                         src_page = doc[item["page_index"]]
-                        s_top = item["section_idx"] * (src_page.rect.height / 3)
-                        s_bottom = (item["section_idx"] + 1) * (src_page.rect.height / 3)
+                        s_top    = item["section_idx"]     * (src_page.rect.height / 3)
+                        s_bottom = (item["section_idx"]+1) * (src_page.rect.height / 3)
                         source_rect = fitz.Rect(0, s_top, src_page.rect.width, s_bottom)
-                        t_top = index * (842 / 3)
-                        t_bottom = (index + 1) * (842 / 3)
+                        t_top    = index     * (842 / 3)
+                        t_bottom = (index+1) * (842 / 3)
                         target_rect = fitz.Rect(0, t_top, 595, t_bottom)
                         new_page.show_pdf_page(target_rect, doc, src_page.number, clip=source_rect)
 
                 output_pdf = io.BytesIO()
                 out_doc.save(output_pdf)
                 output_pdf.seek(0)
-
                 num_out_pages = len(out_doc)
                 out_doc.close()
 
-                # ── Result Stats ─────────────────────────────────────────────
                 st.markdown(f"""
-                <div class="stats-row">
-                    <div class="stat-card">
-                        <div class="stat-value">{total_pages}</div>
-                        <div class="stat-label">Pages Scanned</div>
+                <div class="result-stats">
+                    <div class="stat-tile">
+                        <div class="stat-tile-value">{total_pages}</div>
+                        <div class="stat-tile-label">Pages Scanned</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value">{len(collected_slips)}</div>
-                        <div class="stat-label">Invoices Found</div>
+                    <div class="stat-tile">
+                        <div class="stat-tile-value">{len(collected_slips)}</div>
+                        <div class="stat-tile-label">Invoices Found</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value">{num_out_pages}</div>
-                        <div class="stat-label">Output Pages</div>
+                    <div class="stat-tile">
+                        <div class="stat-tile-value">{num_out_pages}</div>
+                        <div class="stat-tile-label">Output Pages</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
-                st.success(f"⚡  EXTRACTION COMPLETE — {len(collected_slips)} invoices packed across {num_out_pages} A4 pages.")
+                st.success(
+                    f"⚡  EXTRACTION COMPLETE — {len(collected_slips)} invoices "
+                    f"packed across {num_out_pages} A4 pages."
+                )
                 st.download_button(
                     "📥  DOWNLOAD PACKED PDF",
                     output_pdf,
