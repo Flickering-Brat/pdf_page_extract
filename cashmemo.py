@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 
 st.set_page_config(
-    page_title="IOCL Smart Packer",
+    page_title="Smart Invoice Extractor",
     page_icon="⛽",
     layout="centered"
 )
@@ -463,10 +463,10 @@ st.markdown("""
     <div style="display:flex;justify-content:center;margin-bottom:1.1rem;">
         <div class="iocl-badge">
             <div class="iocl-badge-dot"></div>
-            <span class="iocl-badge-text">Indian Oil Corporation Ltd &nbsp;·&nbsp; Document Processing Unit</span>
+            <span class="iocl-badge-text">Indian Oil Corporation Ltd &nbsp;·&nbsp; Invoice Editor</span>
         </div>
     </div>
-    <div class="iocl-title">SMART INVOICE PACKER</div>
+    <div class="iocl-title">SMART INVOICE EXTRACTOR</div>
     <p class="iocl-subtitle">High-Speed Bulk PDF Extraction &amp; A4 Packing Engine</p>
     <div class="iocl-divider"></div>
 </div>
